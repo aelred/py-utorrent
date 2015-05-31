@@ -1,16 +1,16 @@
 #coding=utf8
-import urllib
-import urllib2
-import urlparse
-import cookielib
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
+import http.cookiejar
 import re
-import StringIO
+import io
 try:
     import json 
 except ImportError:
     import simplejson as json
 
-from upload import MultiPartForm
+from .upload import MultiPartForm
 
 class UTorrentClient(object):
 
@@ -25,23 +25,23 @@ class UTorrentClient(object):
     def _make_opener(self, realm, base_url, username, password):
         '''uTorrent API need HTTP Basic Auth and cookie support for token verify.'''
 
-        auth_handler = urllib2.HTTPBasicAuthHandler()
+        auth_handler = urllib.request.HTTPBasicAuthHandler()
         auth_handler.add_password(realm=realm,
                                   uri=base_url,
                                   user=username,
                                   passwd=password)
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_opener(opener)     
+        opener = urllib.request.build_opener(auth_handler)
+        urllib.request.install_opener(opener)     
 
-        cookie_jar = cookielib.CookieJar()
-        cookie_handler = urllib2.HTTPCookieProcessor(cookie_jar)
+        cookie_jar = http.cookiejar.CookieJar()
+        cookie_handler = urllib.request.HTTPCookieProcessor(cookie_jar)
 
         handlers = [auth_handler, cookie_handler]
-        opener = urllib2.build_opener(*handlers)
+        opener = urllib.request.build_opener(*handlers)
         return opener
 
     def _get_token(self):
-        url = urlparse.urljoin(self.base_url, 'token.html')
+        url = urllib.parse.urljoin(self.base_url, 'token.html')
         response = self.opener.open(url)
         token_re = "<div id='token' style='display:none;'>([^<>]+)</div>"
         match = re.search(token_re, response.read())
@@ -50,7 +50,7 @@ class UTorrentClient(object):
        
     def list(self, **kwargs):
         params = [('list', '1')]
-        params += kwargs.items()
+        params += list(kwargs.items())
         return self._action(params)
 
     def start(self, *hashes):
@@ -87,7 +87,7 @@ class UTorrentClient(object):
         
     def setprops(self, hash, **kvpairs):
         params = [('action', 'setprops'), ('hash', hash)]
-        for k, v in kvpairs.iteritems():
+        for k, v in kvpairs.items():
             params.append( ("s", k) )
             params.append( ("v", v) )
 
@@ -107,7 +107,7 @@ class UTorrentClient(object):
         if filepath is not None:
             file_handler = open(filepath,'rb')
         else:
-            file_handler = StringIO.StringIO(bytes)
+            file_handler = io.StringIO(bytes)
             
         form.add_file('torrent_file', filename.encode('utf-8'), file_handler)
 
@@ -131,8 +131,8 @@ class UTorrentClient(object):
 
     def _action(self, params, body=None, content_type=None):
         #about token, see https://github.com/bittorrent/webui/wiki/TokenSystem
-        url = self.base_url + '?token=' + self.token + '&' + urllib.urlencode(params)
-        request = urllib2.Request(url)
+        url = self.base_url + '?token=' + self.token + '&' + urllib.parse.urlencode(params)
+        request = urllib.request.Request(url)
 
         if body:
             request.add_data(body)
@@ -143,6 +143,6 @@ class UTorrentClient(object):
         try:
             response = self.opener.open(request)
             return response.code, json.loads(response.read())
-        except urllib2.HTTPError,e:
+        except urllib.error.HTTPError as e:
             raise 
         
