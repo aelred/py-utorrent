@@ -49,7 +49,7 @@ class UTorrentClient(object):
         url = urllib.parse.urljoin(self.base_url, 'token.html')
         response = self.opener.open(url)
         token_re = "<div id='token' style='display:none;'>([^<>]+)</div>"
-        match = re.search(token_re, response.read())
+        match = re.search(token_re, response.read().decode('utf-8'))
         return match.group(1)
 
     def list(self, **kwargs):
@@ -149,6 +149,6 @@ class UTorrentClient(object):
 
         try:
             response = self.opener.open(request)
-            return response.code, json.loads(response.read())
+            return response.code, json.loads(response.read().decode('utf-8'))
         except urllib.error.HTTPError:
             raise

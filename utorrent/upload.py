@@ -1,7 +1,7 @@
 # code copied from http://www.doughellmann.com/PyMOTW/urllib2/
 
 import itertools
-import mimetools
+import email
 import mimetypes
 
 
@@ -11,7 +11,7 @@ class MultiPartForm(object):
     def __init__(self):
         self.form_fields = []
         self.files = []
-        self.boundary = mimetools.choose_boundary()
+        self.boundary = email.choose_boundary()
         return
 
     def get_content_type(self):
