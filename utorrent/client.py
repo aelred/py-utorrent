@@ -16,13 +16,13 @@ from .upload import MultiPartForm
 
 class UTorrentClient(object):
 
-    def __init__(self, base_url, username, password):
+    def __init__(self, base_url, username, password, timeout=None):
         self.base_url = base_url
         self.username = username
         self.password = password
         self.opener = self._make_opener('uTorrent', base_url,
                                         username, password)
-        self.token = self._get_token()
+        self.token = self._get_token(timeout)
         # TODO refresh token, when necessary
 
     def _make_opener(self, realm, base_url, username, password):
@@ -45,9 +45,9 @@ class UTorrentClient(object):
         opener = urllib.request.build_opener(*handlers)
         return opener
 
-    def _get_token(self):
+    def _get_token(self, timeout):
         url = urllib.parse.urljoin(self.base_url, 'token.html')
-        response = self.opener.open(url)
+        response = self.opener.open(url, timeout=timeout)
         token_re = "<div id='token' style='display:none;'>([^<>]+)</div>"
         match = re.search(token_re, response.read().decode('utf-8'))
         return match.group(1)

@@ -5,7 +5,7 @@ from setuptools import setup
 README = '''uTorrent WEB UI API Client Library in Python'''
 
 setup(name='py-utorrent',
-      version='0.1',
+      version='0.2',
       description='',
       long_description=README,
       classifiers=[
